@@ -11,45 +11,37 @@ from scipy.linalg import pascal, dft
 # ==================================
 def task_1():
 	s1 = lambda x: sin(x)
-	f1 = 2 * np.pi # Frequenz - normale Sinuskurve
-
 	s2 = lambda x: sin(x) + (3 * sin(2 * x + 1) - 1)
 	
 	region = (0, 4 * np.pi)
 
-	# showFunc(s1, region)
-	checkDft(s1, f1, region)
-	# checkDft(s2, f1, region)
+	checkDft(s1, 20, region)
+	checkDft(s2, 20, region)
 
 def checkDft(func, rate, region):
-	amount = int(2 * rate * region[1])
-	# amount = 100
-	print(amount)
-	xList = [(x / amount) * (region[1] - region[0]) + region[0] for x in range(amount)]
-	yList = np.array([func(x) for x in xList])
-	# yList = np.random.rand(amount + 1,)
+	showFunc(func, region, rate)
 	
-	# res = naive_DFT(yList)
-	# real = np.real(res)
+	amount = int((region[1] / np.pi) * rate)
+	xList = [(x / amount) * region[1] for x in range(amount + 1)]
+	yList = np.array([func(x) for x in xList])
+	
+	res = manualDft(yList)
+	real = np.real(res)
 
-	# res2 = np.fft.fft(yList)
-	# real2 = np.real(res2)
+	# zur Überprüfung
+	res2 = np.fft.fft(yList)
+	real2 = np.real(res2)
 
-	# showValues(xList, yList)
-	# showValues(xList, real)
+	showValues(xList, yList)
+	showValues(xList, real)
 	# showValues(xList, real2)
 
-	m = dft(amount)
-	res = m @ yList
-	real = np.real(res)
-	showValues(xList, real)
 
-
-def naive_DFT(x):
+def manualDft(x):
     N = np.size(x)
     X = np.zeros((N,),dtype=np.complex128)
     for m in range(0,N):    
-        for n in range(0,N): 
+        for n in range(0,N):
             X[m] += x[n] * np.exp(-np.pi*2j * m * n/N)
     return X
 	
@@ -102,11 +94,17 @@ def gaussFilter(size):
 
 # ==================================
 
-def showFunc(func, region, amount = 200):
+def showFunc(func, region, rate = 1):
 	fig, ax = preparePlot()
-	xList = [(x / amount) * (region[1] - region[0]) + region[0] for x in range(amount + 1)]
+	amount = int((region[1] / np.pi) * rate)
+	xList = [(x / amount) * region[1] for x in range(amount + 1)]
+	# xList = [(x / amount) * (region[1] - region[0]) + region[0] for x in range(amount + 1)]
 	yList = [func(x) for x in xList]
-	ax.plot(xList, yList)
+
+	for x in xList:
+		ax.axvline(x, color="black")
+	ax.plot(xList, yList, color="red")
+
 	plt.show()
 
 def showArr(arr):
