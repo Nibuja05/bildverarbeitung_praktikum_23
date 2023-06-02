@@ -2,17 +2,17 @@ import sys, os
 import numpy as np
 from math import sin
 import matplotlib.pyplot as plt
-from PIL import Image
 import cv2
+from scipy.linalg import pascal
 
 
 def main():
     # for scale in [0.5, 1, 2]:
     #     edgeDetection(scale)
     # plt.show()
-    # laplacePyramid()
-    # binaryImage()
-    skeletonize()
+    aufgabe2()
+    # aufgabe3()
+    # aufgabe4()
 
 
 # ==================================
@@ -119,8 +119,70 @@ def normalizeKernel(kernel):
 # ==================================
 
 
-def laplacePyramid(steps=4):
-    image = cv2.imread("lenna.png")
+def aufgabe2():
+    name = "lenna"
+    image = cv2.imread(f"{name}.png")
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    pyramid = laplacePyramid(image, name)
+    reconstructImageFromPyramid(pyramid)
+
+
+def laplacePyramid(image, name, steps=4):
+    pyramid = []
+    lastImage = image
+    cv2.imwrite(f"{name}_pyramid_0.png", image)
+    for i in range(1, steps + 1):
+        down, diff = reduce(lastImage)
+        # reUp = expand(down)
+        # diff = cv2.subtract(lastImage, blurred)
+
+        pyramid.append(down)
+        cv2.imwrite(f"{name}_pyramid_{i}.png", down)
+        cv2.imwrite(f"{name}_pyramid_laplace_{i}.png", diff)
+        lastImage = down
+
+    for i in range(steps - 1, 0, -1):
+        img = pyramid[i]
+        ex = expand(img)
+        diff = cv2.subtract(pyramid[i - 1], ex)
+        plt.imshow(diff, cmap="gray")
+        plt.show()
+
+    return pyramid
+
+
+def reconstructImageFromPyramid(pyramid):
+    steps = len(pyramid)
+    # lastImage = pyramid[steps - 1][0]
+    # for i in range(steps - 1, 0, -1):
+    #     print(i)
+    #     lastImage = expand(lastImage, pyramid[i][1])
+    #     sys.exit()
+
+
+def reduce(image):
+    kernel = gaussFilter(5)
+    blurred = cv2.filter2D(image, -1, kernel)
+    diff = cv2.subtract(image, blurred)
+    down = blurred[::2, ::2]
+    return down, diff
+
+
+def expand(image):
+    height, width = image.shape[0] * 2, image.shape[1] * 2
+    newImage = np.zeros((height, width), np.uint8)
+    newImage[::2, ::2] = image
+    kernel = gaussFilter(5)
+    newImage = cv2.filter2D(newImage, -1, kernel)
+    return newImage
+
+
+def gaussFilter(size):
+    triangle = pascal(size, kind="lower")  # Pascal triangle
+    pRow = triangle[-1]  # last row
+    kernel = np.outer(pRow, pRow)  # last row * last row
+    return normalizeKernel(kernel)
 
 
 # ==================================
@@ -128,7 +190,7 @@ def laplacePyramid(steps=4):
 # ==================================
 
 
-def binaryImage():
+def aufgabe3():
     image = cv2.imread("test.png")
     sizeMult = 0.2
     image = cv2.resize(
@@ -197,7 +259,7 @@ def binaryClosing(image, ax):
 # ==================================
 
 
-def skeletonize():
+def aufgabe4():
     fig, (ax1, ax2) = plt.subplots(1, 2)
     image = cv2.imread("horse.png")
     sizeMult = 0.2
