@@ -17,11 +17,11 @@ def task_1():
     region = (0, 4 * np.pi)
 
     checkDft(s1, 20, region)
-    checkDft(s2, 20, region)
+    # checkDft(s2, 20, region)
 
 
 def checkDft(func, rate, region):
-    showFunc(func, region, rate)
+    # showFunc(func, region, rate)
 
     amount = int((region[1] / np.pi) * rate)
     xList = [(x / amount) * region[1] for x in range(amount + 1)]
@@ -34,6 +34,7 @@ def checkDft(func, rate, region):
     showFourier(xList, res, region, amount)
 
 
+# Xk = ∑ n=0 to N−1 for xn * e^ −2πikn/N
 def manualDft(x):
     N = np.size(x)
     X = np.zeros((N,), dtype=np.complex128)
@@ -121,7 +122,7 @@ def showValues(xList, yList):
 
 
 def showFourier(xList, yList, region, count):
-    fig, ax = preparePlot()
+    # fig, ax = preparePlot()
     step = region[1] / count
 
     # np.abs(Y) statt Y.real
@@ -129,7 +130,7 @@ def showFourier(xList, yList, region, count):
     # 2*np.pi in X achse, um Hz zu bekommen
     xList = xList[: count // 2]
     # ax.plot(np.linspace(0, 1 / step, count)[: count // 2], np.abs(yList)[: count // 2])
-    ax.plot(xList, np.abs(yList)[: count // 2])
+    plt.plot(xList, np.abs(yList)[: count // 2])
     plt.show()
 
 
@@ -147,6 +148,6 @@ def preparePlot():
 
 
 if __name__ == "__main__":
-    task_1()
-    # task_2()
-    # task_3()
+    # task_1()
+    task_2()
+    task_3()
