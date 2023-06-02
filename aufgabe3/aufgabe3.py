@@ -7,10 +7,8 @@ from scipy.linalg import pascal
 
 
 def main():
-    # for scale in [0.5, 1, 2]:
-    #     edgeDetection(scale)
-    # plt.show()
-    aufgabe2()
+    aufgabe1(True)
+    # aufgabe2()
     # aufgabe3()
     # aufgabe4()
 
@@ -18,6 +16,16 @@ def main():
 # ==================================
 # 1 Edge Detection
 # ==================================
+
+
+def aufgabe1(scale=False):
+    if scale:
+        for scale in [0.5, 1, 2]:
+            edgeDetection(scale)
+        plt.show()
+    else:
+        edgeDetection()
+        plt.show()
 
 
 def edgeDetection(scale=1):
@@ -30,6 +38,12 @@ def edgeDetection(scale=1):
     # image = Image.open("./test.png")
     image = cv2.imread("lenna.png")
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    image = cv2.resize(
+        image,
+        (int(image.shape[0] * scale), int(image.shape[1] * scale)),
+        interpolation=cv2.INTER_AREA,
+    )
 
     laplaceEdge(image, ax1)
     sobelEdge_improved(image, ax2)
@@ -49,7 +63,7 @@ def laplaceEdge(image, ax):
 
 
 # Vorteile: sehr wenig Rauschen, nur "wichtigste Kanten"
-# Nachteile: sehr unterschiedliche Kantenlinien-Stärke, häufig nicht durchgängig
+# Nachteile: sehr unterschiedliche Kantenlinien-Stärke, häufig nicht durchgängig (Richtung der Kanten?)
 def sobelEdge(image, ax):
     ax.title.set_text("Sobel")
     kernel1 = np.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]]) * 1 / 8
@@ -68,8 +82,8 @@ def sobelEdge_improved(image, ax):
     ax.imshow(image, cmap="gray")
 
 
-# Vorteile: sehr klar erkennbare Kanten (dicke)
-# Nachteile: ?
+# Vorteile: sehr klar erkennbare Kanten (dicke) in jede Richtung
+# Nachteile: mehr Rechenzeit
 def logEdge(image, ax):
     ax.title.set_text("LoG")
     kernel = (
@@ -124,49 +138,56 @@ def aufgabe2():
     image = cv2.imread(f"{name}.png")
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
+    # test, _ = reduce(image)
+    # fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+    # up1 = expand(test)
+    # up2 = cv2.pyrUp(test)
+    # # ax1.imshow(test, cmap="gray")
+    # diff = cv2.subtract(up1, up2)
+    # print(diff)
+    # ax2.imshow(up1, cmap="gray")
+    # ax3.imshow(up2, cmap="gray")
+    # ax1.imshow(diff)
+    # plt.show()
+
     lastImage, pyramid = laplacePyramid(image, name)
-    reconstructImageFromPyramid(lastImage, pyramid)
+    reconImage = reconstructImageFromPyramid(lastImage, pyramid)
+    plt.imshow(reconImage, cmap="gray")
+    plt.axis("off")
+    plt.show()
 
 
 def laplacePyramid(image, name, steps=4):
-    gaussPyramid = []
+    gaussPyramid = [image]
     lastImage = image
     cv2.imwrite(f"{name}_pyramid_0.png", image)
     for i in range(1, steps + 1):
-        down, diff = reduce(lastImage)
-        # reUp = expand(down)
-        # diff = cv2.subtract(lastImage, blurred)
-
+        down, _ = reduce(lastImage)
         gaussPyramid.append(down)
         cv2.imwrite(f"{name}_pyramid_{i}.png", down)
-        cv2.imwrite(f"{name}_pyramid_laplace_{i}.png", diff)
         lastImage = down
 
     pyramid = [gaussPyramid[-1]]
-    for i in range(steps - 1, 0, -1):
+    for i in range(steps, 0, -1):
         img = gaussPyramid[i]
-        # ex = expand(img)
-        ex = cv2.pyrUp(img)
+        ex = expand(img)
         diff = cv2.subtract(gaussPyramid[i - 1], ex)
         pyramid.append(diff)
+        cv2.imwrite(f"{name}_pyramid_laplace_{i}.png", diff)
 
-        plt.imshow(diff, cmap="gray")
-        plt.show()
+        # plt.imshow(diff, cmap="gray")
+        # plt.show()
 
     return lastImage, pyramid
 
 
 def reconstructImageFromPyramid(lastImage, pyramid):
     steps = len(pyramid)
-    for i in range(steps):
-        print(i)
-        # lastImage = expand(lastImage)
-        lastImage = cv2.pyrUp(lastImage)
-        print(lastImage.shape, pyramid[i + 1].shape)
-        image = cv2.add(lastImage, pyramid[i + 1])
-        plt.imshow(image, cmap="gray")
-        plt.show()
-        sys.exit()
+    for i in range(steps - 1):
+        lastImage = expand(lastImage)
+        lastImage = cv2.add(lastImage, pyramid[i + 1])
+
+    return lastImage
 
 
 def reduce(image):
@@ -183,6 +204,7 @@ def expand(image):
     newImage[::2, ::2] = image
     kernel = gaussFilter(5)
     newImage = cv2.filter2D(newImage, -1, kernel)
+    newImage = np.multiply(newImage, 4)
     return newImage
 
 
