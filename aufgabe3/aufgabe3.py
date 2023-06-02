@@ -124,12 +124,12 @@ def aufgabe2():
     image = cv2.imread(f"{name}.png")
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    pyramid = laplacePyramid(image, name)
-    reconstructImageFromPyramid(pyramid)
+    lastImage, pyramid = laplacePyramid(image, name)
+    reconstructImageFromPyramid(lastImage, pyramid)
 
 
 def laplacePyramid(image, name, steps=4):
-    pyramid = []
+    gaussPyramid = []
     lastImage = image
     cv2.imwrite(f"{name}_pyramid_0.png", image)
     for i in range(1, steps + 1):
@@ -137,28 +137,36 @@ def laplacePyramid(image, name, steps=4):
         # reUp = expand(down)
         # diff = cv2.subtract(lastImage, blurred)
 
-        pyramid.append(down)
+        gaussPyramid.append(down)
         cv2.imwrite(f"{name}_pyramid_{i}.png", down)
         cv2.imwrite(f"{name}_pyramid_laplace_{i}.png", diff)
         lastImage = down
 
+    pyramid = [gaussPyramid[-1]]
     for i in range(steps - 1, 0, -1):
-        img = pyramid[i]
-        ex = expand(img)
-        diff = cv2.subtract(pyramid[i - 1], ex)
+        img = gaussPyramid[i]
+        # ex = expand(img)
+        ex = cv2.pyrUp(img)
+        diff = cv2.subtract(gaussPyramid[i - 1], ex)
+        pyramid.append(diff)
+
         plt.imshow(diff, cmap="gray")
         plt.show()
 
-    return pyramid
+    return lastImage, pyramid
 
 
-def reconstructImageFromPyramid(pyramid):
+def reconstructImageFromPyramid(lastImage, pyramid):
     steps = len(pyramid)
-    # lastImage = pyramid[steps - 1][0]
-    # for i in range(steps - 1, 0, -1):
-    #     print(i)
-    #     lastImage = expand(lastImage, pyramid[i][1])
-    #     sys.exit()
+    for i in range(steps):
+        print(i)
+        # lastImage = expand(lastImage)
+        lastImage = cv2.pyrUp(lastImage)
+        print(lastImage.shape, pyramid[i + 1].shape)
+        image = cv2.add(lastImage, pyramid[i + 1])
+        plt.imshow(image, cmap="gray")
+        plt.show()
+        sys.exit()
 
 
 def reduce(image):
