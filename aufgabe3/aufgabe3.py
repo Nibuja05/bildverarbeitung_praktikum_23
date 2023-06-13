@@ -7,10 +7,10 @@ from scipy.linalg import pascal
 
 
 def main():
-    aufgabe1(True)
+    # aufgabe1(True)
     # aufgabe2()
     # aufgabe3()
-    # aufgabe4()
+    aufgabe4()
 
 
 # ==================================
@@ -292,12 +292,6 @@ def binaryClosing(image, ax):
 def aufgabe4():
     fig, (ax1, ax2) = plt.subplots(1, 2)
     image = cv2.imread("horse.png")
-    sizeMult = 0.2
-    # image = cv2.resize(
-    #     image,
-    #     (int(image.shape[0] * sizeMult), int(image.shape[1] * sizeMult)),
-    #     interpolation=cv2.INTER_AREA,
-    # )
     image = makeImageBinary(image)
     ax1.imshow(255 - image, cmap="gray")
 
