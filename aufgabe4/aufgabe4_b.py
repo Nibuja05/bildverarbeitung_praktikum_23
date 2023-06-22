@@ -50,7 +50,7 @@ def main():
 def create_scale_space(
     image: np.ndarray, params: SIFT_Params
 ) -> tuple[list[list[np.ndarray]], list[float], list[list[float]]]:
-    # Start image!
+    print("Creating Scale Space...", end="\r")
     image = cv2.resize(
         image,
         (0, 0),
@@ -87,6 +87,8 @@ def create_scale_space(
             o_base_image, (0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR
         )
 
+    print("Creating Scale Space... Done!")
+
     return images, deltas, sigmas
 
 
@@ -101,6 +103,7 @@ def getSigmas(sigma: float, params: SIFT_Params, mult=1):
 
 
 def create_dogs(images: list[list[np.ndarray]]) -> list[list[np.ndarray]]:
+    print("Calculating Dogs...", end="\r")
     dog_images = []
 
     for o_images in images:
@@ -108,14 +111,23 @@ def create_dogs(images: list[list[np.ndarray]]) -> list[list[np.ndarray]]:
         for s in range(len(o_images) - 1):
             dog_o_images.append(cv2.subtract(o_images[s + 1], o_images[s]))
         dog_images.append(dog_o_images)
+
+    print("Calculating Dogs... Done!")
     return dog_images
 
 
 def find_discrete_extremas(dog_images: list[list[np.ndarray]], border=1, threshold=0):
+    print("Searching for Keypoints...", end="\r")
     keypoints = []
+
+    total_steps = len(dog_images) * (len(dog_images[0]) - 2)
+    step = 0
 
     for o, o_images in enumerate(dog_images):
         for s in range(1, len(o_images) - 1):
+            printProgress(step, total_steps, "Searching for Keypoints...")
+            step += 1
+
             first_image = o_images[s - 1]
             second_image = o_images[s]
             third_image = o_images[s + 1]
@@ -129,6 +141,8 @@ def find_discrete_extremas(dog_images: list[list[np.ndarray]], border=1, thresho
                     ):
                         keypoint = SIFT_KeyPoint(o, s, y, x)
                         keypoints.append(keypoint)
+
+    print("Searching for Keypoints... Done!")
     return keypoints
 
 
@@ -175,6 +189,17 @@ def gaussKernel(size):
 def normalizeKernel(kernel):
     total = np.sum(kernel)
     return np.multiply(kernel, 1 / total)
+
+
+def printProgress(i, maxI, msg, endMsg=None):
+    i += 1
+    maxLen = 20
+    curLen = int((i / maxI) * maxLen)
+    print(f"{msg} [{'=' * curLen}{' ' * (maxLen-curLen)}]", end="\r")
+    if i >= maxI:
+        print(" " * (len(msg) + maxLen + 10), end="\r")
+        if endMsg:
+            print(endMsg)
 
 
 if __name__ == "__main__":
