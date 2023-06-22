@@ -174,23 +174,6 @@ def check_local_extremum(
 # =============================================
 
 
-def gaussFilter(image, size=5):
-    kernel = gaussKernel(size)
-    return cv2.filter2D(image, -1, kernel)
-
-
-def gaussKernel(size):
-    triangle = pascal(size, kind="lower")  # Pascal triangle
-    pRow = triangle[-1]  # last row
-    kernel = np.outer(pRow, pRow)  # last row * last row
-    return normalizeKernel(kernel)
-
-
-def normalizeKernel(kernel):
-    total = np.sum(kernel)
-    return np.multiply(kernel, 1 / total)
-
-
 def printProgress(i, maxI, msg, endMsg=None):
     i += 1
     maxLen = 20
