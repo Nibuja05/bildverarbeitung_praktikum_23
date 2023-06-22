@@ -18,9 +18,9 @@ def main():
 
     params = SIFT_Params()
     scale_space, deltas, sigmas = create_scale_space(image, params)
-    # visualize_scale_space(scale_space[0], "Scale Space - Selfmade", False)
+    visualize_scale_space(scale_space, "Scale Space - Selfmade", False)
     dogs = create_dogs(scale_space)
-    # visualize_scale_space(dogs, "DoGs - Selfmade", False)
+    visualize_scale_space(dogs, "DoGs - Selfmade", False)
     keypoints = find_discrete_extremas(dogs)
     visualize_keypoints(
         scale_space, keypoints, deltas, "Keypoints - Selfmade", show=False
